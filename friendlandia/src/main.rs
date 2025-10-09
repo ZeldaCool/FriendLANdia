@@ -1,6 +1,7 @@
 use std::process::{Command, Stdio};
 use std::io;
 mod ipgrabber;
+mod tcpclient;
 fn main(){
     println!("Are you recieving the connection? \n Y/N");
     let mut valconninfo = String::new();
