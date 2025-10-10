@@ -1,7 +1,7 @@
 use std::process::{Command, Stdio};
 use std::io;
 mod ipgrabber;
-mod tcpclient;
+mod tcpserver;
 fn main(){
     println!("Are you recieving the connection? \n Y/N");
     let mut valconninfo = String::new();
@@ -10,6 +10,8 @@ fn main(){
     if valconninfo == "Y"{
         let x = ipgrabber::get_ip();
         println!("{:?}", x);
+        let s = x.into_iter().collect::<String>();
+        let y = tcpserver::tcpserver();
     } else {
         todo!("Not done with this yet!");
     }
