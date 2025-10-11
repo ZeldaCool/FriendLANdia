@@ -3,16 +3,15 @@ use std::io;
 mod ipgrabber;
 mod tcpserver;
 fn main(){
-    println!("Are you recieving the connection? \n Y/N");
-    let mut valconninfo = String::new();
-    io::stdin().read_line(&mut valconninfo).expect("Failed to read");
-    valconninfo = valconninfo.trim().to_string();
-    if valconninfo == "Y"{
-        let x = ipgrabber::get_ip();
-        println!("{:?}", x);
-        let s = x.into_iter().collect::<String>();
-        let y = tcpserver::tcpserver();
-    } else {
-        todo!("Not done with this yet!");
-    }
+    let mut x = ipgrabber::get_ip();
+    println!("{:?}", x);
+    x.push(':');
+    x.push('7');
+    x.push('8');
+    x.push('7');
+    x.push('8');
+    let s = x.into_iter().collect::<String>();
+    println!("{}", s);
+    tcpserver(s);
+   
 }
