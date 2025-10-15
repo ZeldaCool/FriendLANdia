@@ -5,12 +5,12 @@ use std::{
 use std::io;
 pub fn tcpserver(ip: String) -> String {
     let listener = TcpListener::bind(ip).unwrap();
-    let hi = "hello, I'm cool";
+    let hi = "Server Shutting Down...";
     for stream in listener.incoming() {
-        println!("Connection incoming, accept it? Y/N");
+        println!("Message incoming, accept it? Y/N");
         let mut responsehere = String::new();
         let useresponse = io::stdin().read_line(&mut responsehere).expect("Failure");
-        if useresponse.trim() == "Y"{
+        if responsehere.trim() == "Y"{
             let stream = stream.unwrap();
             let buf_reader = BufReader::new(&stream);
             let message: Vec<_> = buf_reader
@@ -18,7 +18,8 @@ pub fn tcpserver(ip: String) -> String {
                 .map(|result| result.unwrap())
                 .take_while(|line| !line.is_empty())
                 .collect();
-            println("{:?}", message);
+            println!("{:?}", message);
+            let clientip = message;
         }
         else{
             todo!();
