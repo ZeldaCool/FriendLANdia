@@ -12,3 +12,7 @@ A download will not be reccommended until security tests have been run extensive
 ## **ABOUT**
 
 An open-source project in Rust dedicated to providing a secure and private method to communicate on your LAN! This project has two forms, a TCP form written with no added crates and the WebSocket form which uses tokio-tungstenite.
+## **FEATURES**
+### **ADMIN NODES**
+### **CHAT SAVING**
+### **INTER-SUBNET COMMUNICATIONS**
