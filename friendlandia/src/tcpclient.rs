@@ -25,6 +25,9 @@ pub fn tcpclient(serverip: String, userip: String) -> std::io::Result<()> {
                 let message_to_send = String::new();
                 let response_a = io::stdin().read_line(&mut responsehere).expect("Failure");
                 sender.write(b"{response_a}");
+                let mut bytereader = [0; 128];
+                let mut response = sender.read(&mut bytereader)?;
+                println!("Response: {}", String::from_utf8_lossy(&bytereader[..response]));
             }
             
         }
