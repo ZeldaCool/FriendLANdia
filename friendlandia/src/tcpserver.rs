@@ -4,6 +4,7 @@ use std::{
 };
 use std::io;
 pub fn tcpserver(ip: String) -> String {
+    //Add async thread handler for multiple messages
     let listener = TcpListener::bind(ip).unwrap();
     let hi = "Server Shutting Down...";
     for stream in listener.incoming() {
@@ -28,4 +29,8 @@ pub fn tcpserver(ip: String) -> String {
         
     }
     hi.to_string()
+}
+pub fn moderation(){
+    todo!();
+    //Add moderation and editing messages before forwarding
 }
