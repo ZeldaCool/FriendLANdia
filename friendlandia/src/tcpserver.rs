@@ -3,8 +3,10 @@ use std::{
     net::{TcpListener, TcpStream},
 };
 use std::io;
+//Add username functionality
 pub fn tcpserver(ip: String) -> String {
     //Add async thread handler for multiple messages
+    //Add encryption as well
     let listener = TcpListener::bind(ip).unwrap();
     let hi = "Server Shutting Down...";
     for stream in listener.incoming() {

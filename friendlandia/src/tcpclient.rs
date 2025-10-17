@@ -4,8 +4,10 @@ use std::{
     net::{TcpListener, TcpStream},
 };
 use std::io;
+//Add username functionality
 pub fn tcpclient(serverip: String, userip: String) -> std::io::Result<()> {
     //TODO: For CLI Tool, implement stream ip so it'll connect
+    //Make sure to send message with IP
     let first_time = true;
     let mut sender = TcpStream::connect(serverip)?;
     while 1 == 1{
