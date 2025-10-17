@@ -14,7 +14,7 @@ pub fn tcpserver(ip: String) -> String {
         let mut responsehere = String::new();
         let useresponse = io::stdin().read_line(&mut responsehere).expect("Failure");
         if responsehere.trim() == "Y"{
-            let stream = stream.unwrap();
+            let mut stream = stream.unwrap();
             let buf_reader = BufReader::new(&stream);
             let message: Vec<_> = buf_reader
                 .lines()
