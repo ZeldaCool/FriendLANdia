@@ -7,6 +7,9 @@ use std::io;
 pub fn tcpserver(ip: String) -> String {
     //Add async thread handler for multiple messages
     //Add encryption as well
+    //Add message number functionality and display for easy refrence
+    //Implement moderation notices, distribute moderated messages if necessary otherwise distribute it unedited
+    //Timestamps
     let listener = TcpListener::bind(ip).unwrap();
     let hi = "Server Shutting Down...";
     for stream in listener.incoming() {

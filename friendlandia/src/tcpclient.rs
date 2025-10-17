@@ -8,6 +8,8 @@ use std::io;
 pub fn tcpclient(serverip: String, userip: String) -> std::io::Result<()> {
     //TODO: For CLI Tool, implement stream ip so it'll connect
     //Make sure to send message with IP
+    //Add message number functionality and display for easy refrence
+    //Timestamps
     let first_time = true;
     let mut sender = TcpStream::connect(serverip)?;
     while 1 == 1{
