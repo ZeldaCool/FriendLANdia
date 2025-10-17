@@ -23,6 +23,9 @@ pub fn tcpserver(ip: String) -> String {
                 .collect();
             println!("{:?}", message);
             let clientip = message;
+            let mut response = "hehehehehe!";
+            stream.write_all(response.as_bytes()).unwrap();
+
         }
         else{
             todo!();
