@@ -59,6 +59,7 @@ pub fn get_ip() -> Vec<char>{
          let ipconfigcommand = Command::new("sh")
             .arg("-c")
             .arg("ifconfig")
+            .arg("-a")
             .stdout(Stdio::piped())
             .output()
             .expect("Failure");

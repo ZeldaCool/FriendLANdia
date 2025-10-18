@@ -1,8 +1,9 @@
 use std::{
-    io::{BufReader, prelude::*},
+    io::{BufReader, prelude::*, Write},
     net::{TcpListener, TcpStream},
 };
 use std::io;
+use std::thread;
 //Add username functionality
 pub fn tcpserver(ip: String) -> String {
     //Add async thread handler for multiple messages
@@ -19,26 +20,34 @@ pub fn tcpserver(ip: String) -> String {
         let mut responsehere = String::new();
         let useresponse = io::stdin().read_line(&mut responsehere).expect("Failure");
         if responsehere.trim() == "Y"{
-            let mut stream = stream.unwrap();
-            let buf_reader = BufReader::new(&stream);
-            let message: Vec<_> = buf_reader
-                .lines()
-                .map(|result| result.unwrap())
-                .take_while(|line| !line.is_empty())
-                .collect();
-            println!("{:?}", message);
-            let clientip = message;
-            let mut response = "hehehehehe!";
-            stream.write_all(response.as_bytes()).unwrap();
-
+            thread::spawn(|| {
+            let stream = stream.unwrap();
+            handle_messages(stream);
+            });
         }
         else{
-            todo!();
+            break;
         }
         
         
     }
     hi.to_string()
+}
+pub fn handle_messages(mut stream: TcpStream) -> String{
+    //Will list all messages from one client to server as a vec and forward them to other connection every few messages, ensure it returns a Vec<String>
+        let buf_reader = BufReader::new(&stream);
+        let message: Vec<_> = buf_reader
+            .lines()
+            .map(|result| result.unwrap())
+            .take_while(|line| !line.is_empty())
+            .collect();
+        println!("{message:#?}");
+        let clientip = message;
+        let mut response = "hehehehehe!";
+        stream.write_all(response.as_bytes()).unwrap();
+        let endmessage = "Success!!!!!";
+        endmessage.to_string()
+    
 }
 pub fn moderation(){
     todo!();
