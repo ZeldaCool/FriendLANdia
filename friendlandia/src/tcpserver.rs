@@ -10,6 +10,7 @@ pub fn tcpserver(ip: String) -> String {
     //Add message number functionality and display for easy refrence
     //Implement moderation notices, distribute moderated messages if necessary otherwise distribute it unedited
     //Timestamps
+    //Create a tcpstream spawn function to handle each seperate connection, rust only handles one at a time
     let listener = TcpListener::bind(ip).unwrap();
     let hi = "Server Shutting Down...";
     for stream in listener.incoming() {
