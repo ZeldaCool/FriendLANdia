@@ -26,7 +26,17 @@ pub fn handle_connection(mut stream: TcpStream) -> std::io::Result<()> {
     let useresponse = io::stdin().read_line(&mut a).expect("Failure");
     if a.trim() == "Y"{
     println!("Message: {}", String::from_utf8_lossy(&bufferserver[..bytes_read]));    
-    let mut response = stream.write_all(b"Message Recieved.").unwrap();
+    println!("Respond? Y/N");
+    let mut aa = String::new();
+    let useresponseee = io::stdin().read_line(&mut aa).expect("Failure");
+    if aa.trim() == "Y"{
+        println!("Enter response...");
+        let mut aaa = String::new();
+        let useresponsee = io::stdin().read_line(&mut aaa).expect("Failure");
+        let aaa = aaa.as_bytes();
+        stream.write_all(aaa).unwrap();
+    }
+
     } else{
         break;
     }
