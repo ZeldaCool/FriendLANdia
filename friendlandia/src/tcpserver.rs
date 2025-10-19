@@ -18,10 +18,19 @@ pub fn server_conn() -> std::io::Result<()> {
 
 }
 pub fn handle_connection(mut stream: TcpStream) -> std::io::Result<()> {
+    loop{
+    println!("Accept a message? Y/N");
+    let mut a = String::new();
+    let useresponse = io::stdin().read_line(&mut a).expect("Failure");
+    if a.trim() == "Y"{
     let mut bufferserver = [0; 512];
     let mut bytes_read = stream.read(&mut bufferserver).unwrap();
     println!("Message: {}", String::from_utf8_lossy(&bufferserver[..bytes_read]));    
     let mut response = stream.write_all(b"Recieved!").unwrap();
     println!("YAYAA!!!");
+    } else{
+        break;
+    }
+    }
     Ok(())
 }
