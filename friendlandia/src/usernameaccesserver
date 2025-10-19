@@ -1,2 +1,5 @@
 //This will be a username access server someone can mantain, when anyone opens a client or server app, it will request a username and pair it with the private ip
 //The client can fetch a server username/ip from the server to connect
+pub fn setupserver(){
+    todo!();
+}
