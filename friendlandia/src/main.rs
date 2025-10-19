@@ -3,7 +3,7 @@ use std::io;
 mod ipgrabber;
 mod tcpserver;
 mod tcpclient;
-//TODO: Tcpserver handles one client at a time, stores messages with timesttamps into a vec and forwards it to other client
+//TODO: Tcpserver handles one client at a time, stores messages with timestamps into a vec and forwards it to other client
 //TODO: Use thread::spawn for tcpserver
 //TODO: Moderation messages, message ids
 //TODO: Text writer w/messages, make a reader for it too
