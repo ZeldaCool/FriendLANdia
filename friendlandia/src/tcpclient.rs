@@ -15,7 +15,7 @@ pub fn client() -> std::io::Result<()> {
     stream.write_all(b"Hello, world!").unwrap();
     let mut bufferclient = [0; 512];
     let mut bytes_read = stream.read(&mut bufferclient).unwrap();
-    println!("Message: {}", String::from_utf8_lossy(&bufferclient[..bytes_read]));
+    println!("Response: {}", String::from_utf8_lossy(&bufferclient[..bytes_read]));
     } else{
         break;
     }    
