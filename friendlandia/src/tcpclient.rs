@@ -3,6 +3,7 @@ use std::{
     io::{BufReader, prelude::*, Read, Write},
     net::{TcpListener, TcpStream},
 };
+//create echo implementation
 use std::io;
 pub fn client() -> std::io::Result<()> {
     let mut stream = TcpStream::connect("127.0.0.1:7878")?;
