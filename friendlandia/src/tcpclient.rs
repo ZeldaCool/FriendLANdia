@@ -5,7 +5,8 @@ use std::{
 };
 use std::io;
 
-pub fn client() -> std::io::Result<()> {
+pub fn client(serverip: String) -> std::io::Result<()> {
+    //Figure out how to use the serverip to connect tcpstream
     let mut stream = TcpStream::connect("127.0.0.1:7878")?;
     loop {
     println!("Send a message? Y/N");
