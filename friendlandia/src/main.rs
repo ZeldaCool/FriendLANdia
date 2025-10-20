@@ -22,7 +22,7 @@ fn main(){
     let s = z.into_iter().collect::<String>();
     let x = x.into_iter().collect::<String>();
     if a.trim() == "server"{
-        tcpserver::server_conn();
+        tcpserver::main();
     } else{
         println!("Enter server's ip with port number after it, e.g. 0.0.0.0:7878");
         let mut aaaau = String::new();
