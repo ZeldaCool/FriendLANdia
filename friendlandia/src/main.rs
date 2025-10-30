@@ -24,10 +24,8 @@ fn main(){
     if a.trim() == "server"{
         tcpserver::main();
     } else{
-        println!("Enter server's ip with port number after it, e.g. 0.0.0.0:7878");
-        let mut aaaau = String::new();
-        let useresponse = io::stdin().read_line(&mut aaaau).expect("Failure");
-        tcpclient::client(aaaau);
+        let ip = "127.0.0.1:7878".to_string();
+        tcpclient::client(ip);
     }
    
 }

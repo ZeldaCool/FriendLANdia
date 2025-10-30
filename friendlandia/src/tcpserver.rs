@@ -1,3 +1,4 @@
+use std::io::{BufReader, prelude::*, Read, Write};
 use tokio::net::TcpListener;
 use std::io;
 use std::error::Error;
@@ -25,8 +26,12 @@ pub async fn main() -> Result<(), Box<dyn Error>>  {
                     break;
                 }
                 println!("Received: {}", String::from_utf8_lossy(&buffer[..n]));
-                let response = b"Hello, client!";
-                stream.write_all(response).await.expect("Failed to write");
+                //Maybe implement a nonblocking input so forwarding messages can still be handled & other stuff too
+                println!("Enter message...");
+                let mut aa = String::new();
+                let useresponsee = io::stdin().read_line(&mut aa).expect("Failure");
+                let aa = aa.as_bytes();
+                stream.write_all(aa).await.expect("Failed to write");
             }
         });
         },
