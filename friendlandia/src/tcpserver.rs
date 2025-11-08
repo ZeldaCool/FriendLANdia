@@ -9,7 +9,9 @@ use tokio::sync::RwLock;
 use tokio::sync::Mutex;
 use std::sync::Arc;
 use tokio::task;
-//
+use tokio::sync::broadcast;
+use tokio::io::AsyncBufReadExt;
+//Use tokio spawn_blocking task to handle user input
 //Utilize tokio's mpsc to broadcast messages between tasks
 
 #[tokio::main]
@@ -26,12 +28,16 @@ pub async fn main() -> Result<(), Box<dyn Error>>  {
                     break;
                 }
                 println!("Received: {}", String::from_utf8_lossy(&buffer[..n]));
-                //Maybe implement a nonblocking input so forwarding messages can still be handled & other stuff too
+                let result = tokio::task::spawn_blocking(|| -> Result<String, io::Error> {
                 println!("Enter message...");
-                let mut aa = String::new();
-                let useresponsee = io::stdin().read_line(&mut aa).expect("Failure");
-                let aa = aa.as_bytes();
-                stream.write_all(aa).await.expect("Failed to write");
+                let mut input = String::new();
+                std::io::stdin().read_line(&mut input)?;
+                println!("{:?}", input.trim().to_string());
+                Ok(input.trim().to_string())
+                }).await;
+                println!("{:?}", result);
+                //stream.write_all(b"{:?result}").await;
+
             }
         });
         },

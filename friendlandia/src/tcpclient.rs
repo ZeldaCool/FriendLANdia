@@ -1,9 +1,16 @@
 use std::{
     fs,
     io::{BufReader, prelude::*, Read, Write},
-    net::{TcpListener, TcpStream},
+    net::TcpStream,
 };
+//use tokio::net::TcpStream;
 use std::io;
+use tokio::sync::broadcast;
+use tokio::task;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use std::error::Error;
+use tokio::sync::RwLock;
+use tokio::sync::Mutex;
 
 //work on async client
 pub fn client(serverip: String) -> std::io::Result<()> {
@@ -27,4 +34,17 @@ pub fn client(serverip: String) -> std::io::Result<()> {
     }    
     }
     Ok(())
-} 
+}
+/*#[tokio::main]
+pub async fn main() -> Result<(), Box<dyn Error>> {
+    let mut stream = TcpStream::connect("127.0.0.1:7878")?;
+
+    //TCPStream Task
+    tokio::spawn(async move {
+
+    });
+    //Message Broadcast Listener
+    tokio::spawn(async move {
+
+    });
+}*/
