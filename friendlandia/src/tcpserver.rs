@@ -12,19 +12,20 @@ use std::sync::Arc;
 use tokio::task;
 use tokio::sync::broadcast;
 use tokio::io::AsyncBufReadExt;
-//Use tokio spawn_blocking task to handle user input
-//Utilize tokio's mpsc to broadcast messages between tasks
-//Add channels
-//Add moderation and server blacklist/whitelist
-//Add usernames as well, each username has a counter, if it goes above two between server/client it is forwarded to all clients
 pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
     let listener = TcpListener::bind(&ip).await?;
-    let mut messagecounter = 0;
+    let (mut tx, _rx) = broadcast::channel::<String>(100);
+    let tx = Arc::new(tx);
+    
     loop {
+    match listener.accept().await{
+
+        let tx_cloned = Arc::clone(&tx);
+        let mut rx = tx_cloned.subscribe();
         match listener.accept().await {
         Ok((mut stream, _)) => {
-            println!("Connection recieved.");
             tokio::spawn(async move {
+            println!("Connection recieved.");
                 let mut buffer = [0; 512];
                 while let Ok(n) = stream.read(&mut buffer).await {
                 if n == 0 {
@@ -37,22 +38,18 @@ pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
                 std::io::stdin().read_line(&mut input);
                 input.trim().to_string()
                 }).await;
-                stream.write_all(result.unwrap().as_bytes()).await;
+                result = result.unwrap().to_string();
+                tx_clone.send(result).unwrap();   
+                }).await;
             }
-        });
         },
         Err(e) => println!("couldn't get client: {:?}", e),
         }   
         
     }
+    }
     Ok(())
 }
-/*pub async fn server_broadcast() -> Result<(), Box<dyn Error>> {
-    tokio::spawn({
-
-    });
-    Ok(())
-}*/
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn Error>>  {
     let mut z = ipgrabber::get_ip();

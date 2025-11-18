@@ -37,35 +37,19 @@ pub fn client(serverip: String) ->  Result<(), Box<dyn Error>> {
     }
     Ok(())
 }
-/*pub async fn client(ip: String) -> Result<(), Box<dyn Error>>{
-    let serverip = ip.trim().to_string();
-    let mut stream = TcpStream::connect(&serverip).await?;
-    let mut buffer = [0; 512];
-    //Stream Task
-    tokio::spawn(async move {
-        loop{
-            let mut result = task::spawn_blocking(|| ->  String {
-            println!("Enter message...");
-            let mut input = String::new();
-            std::io::stdin().read_line(&mut input);
-            input.trim().to_string()
-            }).await;
-            stream.write_all(result.unwrap().as_bytes()).await;
-            match stream.read(&mut buffer).await{
-                Ok(n) => {
-                    println!("Received: {}", String::from_utf8_lossy(&buffer[..n]));
-                }
-                Err(e) => {
-                    println!("Error: {}", e);
-                    break;
-                }
-            }
+pub async fn broadcaster() -> Result<(), Box<dyn Error>>{
+    let (tx, _rx) = broadcast::channel::<String>(100);
+    let mut tx2 = tx.subscribe();
+    loop {
+    match tx2.recv().await{
+        Ok(msg) => {
+            println!("Recieved: {}", msg);
+        }
+        Err(e) => {
+            println!("Error: {}", e);
+        }
     }
-    });
-    /*Broadcast Listener
-    tokio::spawn({
-        //Add verification, if broadcast is recieved and the user tag isn't included ignore and don't display
-    });*/
+    }
     Ok(())
 }
 #[tokio::main]
@@ -73,6 +57,11 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
     println!("Enter server's ip w/ :55000 after it");
     let mut a = String::new();
     let useresponsea = io::stdin().read_line(&mut a).expect("Failure");
-    client(a).await?;
+    task::spawn_blocking(move ||{
+        client(a);
+    }).await;
+    tokio::spawn(async move{
+        broadcaster().await;
+    });
     Ok(())
-}*/
+}

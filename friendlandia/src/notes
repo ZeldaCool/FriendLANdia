@@ -25,3 +25,10 @@ If the server/client likes, they can move between channels.
 Clients must auth with servers at the beginning in order for the channels to work.
 ### **Encryption**
 Messages are encrypted and decrypted.
+
+## **Process Structure**
+Connection/Message via TCP from client -> Recieved, broadcast subscribed to client -> Response formulated, sent to all clients -> 
+                                                                                                        |
+                                                                                                        |
+                                                                                                        > If a message is recieved at this time, input will be saved and restored
+Once updated, the chat logs/terminal are flushed and updated with any lagged messages -> Repeats until connections are closed
