@@ -25,7 +25,7 @@ pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
         match listener.accept().await {
         Ok((mut stream, _)) => {
             tokio::spawn(async move {
-            println!("Connection recieved.");
+                println!("Connection recieved.");
                 let mut buffer = [0; 512];
                 while let Ok(n) = stream.read(&mut buffer).await {
                 if n == 0 {
@@ -39,17 +39,18 @@ pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
                 input.trim().to_string()
                 }).await;
                 result = result.unwrap().to_string();
-                tx_clone.send(result).unwrap();   
-                }).await;
-            }
+                tx_clone.send(result).unwrap();
+                }   
+                });
+
         },
         Err(e) => println!("couldn't get client: {:?}", e),
         }   
         
     }
-    }
     Ok(())
-}
+    }
+
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn Error>>  {
     let mut z = ipgrabber::get_ip();
