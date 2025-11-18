@@ -1,27 +1,27 @@
-#Features
-##**Server**
-###**Shared Broadcast**
+# Features
+## **Server**
+### **Shared Broadcast**
 Rather than having multiple messages sent to each client, the server utilizes a "shared" input that is fowarded to each client
-###**Message forwarding**
+### **Message forwarding**
 Each message is forwarded to each client, regardless of tags. Clients handle tags.
-###**Moderation**
+### **Moderation**
 Before forwarding, the server can moderate messages. Instead of the message, it will simply send a notice stating the message has been modified.
 
-##**Client**
-###**Sync Tcp, Async broadcast**
+## **Client**
+### **Sync Tcp, Async broadcast**
 The main() function spawns a blocking tcp stream task, and uses an async broadcaster task to listen for forwaded messages
-###**Broadcast**
+### **Broadcast**
 There are tags at the top of the broadcast message, if the user holds the tag the forwarded messages are ignored
-###**Chat Logs**
+### **Chat Logs**
 The chat history is displayed on the command line
 
-##**Shared**
-###**Channels**
+## **Shared**
+### **Channels**
 Each channel contains:
 One server, as many clients as the server can handle
-###**Channel surfing**
+### **Channel surfing**
 If the server/client likes, they can move between channels.
-###**Authentication**
+### **Authentication**
 Clients must auth with servers at the beginning in order for the channels to work.
-###**Encryption**
+### **Encryption**
 Messages are encrypted and decrypted.
