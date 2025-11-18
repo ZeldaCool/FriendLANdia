@@ -12,20 +12,13 @@ fn main(){
     println!("Server or client? server/client");
     let mut a = String::new();
     let useresponsea = io::stdin().read_line(&mut a).expect("Failure");
-    let mut x = ipgrabber::get_ip();
-    let mut z = x.clone();
-    z.push(':');
-    z.push('7');
-    z.push('8');
-    z.push('7');
-    z.push('8');
-    let s = z.into_iter().collect::<String>();
-    let x = x.into_iter().collect::<String>();
     if a.trim() == "server"{
         tcpserver::main();
     } else{
-        let ip = "127.0.0.1:7878".to_string();
-        tcpclient::client(ip);
+        println!("Enter server's ip w/ :55000 after it");
+        let mut a = String::new();
+        let useresponsea = io::stdin().read_line(&mut a).expect("Failure");
+        tcpclient::client(a);
     }
    
 }
