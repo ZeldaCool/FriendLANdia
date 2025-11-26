@@ -11,6 +11,7 @@ use std::error::Error;
 use tokio::sync::RwLock;
 use tokio::sync::Mutex;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::TcpListener;
 //use tokio::net::TcpStream;
 //Utilize a blocking task for client listener/sender, and a non-blocking task for the broadcast listener
 
@@ -38,18 +39,7 @@ pub fn client(serverip: String) ->  Result<(), Box<dyn Error>> {
     Ok(())
 }
 pub async fn broadcaster() -> Result<(), Box<dyn Error>>{
-    let (tx, _rx) = broadcast::channel::<String>(100);
-    let mut tx2 = tx.subscribe();
-    loop {
-    match tx2.recv().await{
-        Ok(msg) => {
-            println!("Recieved: {}", msg);
-        }
-        Err(e) => {
-            println!("Error: {}", e);
-        }
-    }
-    }
+    todo!();
     Ok(())
 }
 #[tokio::main]
