@@ -48,12 +48,12 @@ pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
                 //stream.write_all(result.unwrap().as_bytes()).await;
                 //Grab read lock here
                 //Figure out how to iterate here
-                //let mut vec_read = cloned_reader.read().await;
-                /*for i in vec_read{
+                let mut vec_read = cloned_reader.read().await;
+                for i in vec_read.iter(){
                     //This will open a tcp stream to each client, client listener task will bind a tcpserver with their ip and a specific port
-                    //todo!();
+                    todo!();
                     //counter = counter+1;
-                }*/
+                }
                 }
                 });
             },
