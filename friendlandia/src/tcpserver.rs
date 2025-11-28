@@ -29,7 +29,7 @@ pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
             tokio::spawn(async move {
                 //Retrieve write lock here
                 let mut vec = cloned_writer.write().await;
-                vec.push(addr);
+                vec.push(addr.to_string());
                 drop(vec);
                 println!("Connection recieved from : {}", addr);
                 let mut buffer = [0; 512];
@@ -48,11 +48,21 @@ pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
                 //stream.write_all(result.unwrap().as_bytes()).await;
                 //Grab read lock here
                 //Figure out how to iterate here
+
+                //Try using blocking_read in a spawn::blocking for this whole section, place ips in a vec to use it outside of task, use that as the client list? If that doesn't work, post to stackoverflow
                 let mut vec_read = cloned_reader.read().await;
+                
                 for i in vec_read.iter(){
-                    //This will open a tcp stream to each client, client listener task will bind a tcpserver with their ip and a specific port
+                    let ip = i.clone();
+                    task::spawn_blocking(move|| -> String{
+                        println!("Ip: {}", ip);
+                        let new_ip = ipgrabber::port_converter(ip);
+                        new_ip
+                    }).await;
+                    //connect to changed port ip, if on same system it won't work? so try to change port each time for now
+                    //Send messages, close connection
                     todo!();
-                    //counter = counter+1;
+                    counter = counter+1;
                 }
                 }
                 });

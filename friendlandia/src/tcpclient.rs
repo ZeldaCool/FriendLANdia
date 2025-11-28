@@ -12,6 +12,7 @@ use tokio::sync::RwLock;
 use tokio::sync::Mutex;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
+use crate::ipgrabber;
 //use tokio::net::TcpStream;
 //Utilize a blocking task for client listener/sender, and a non-blocking task for the broadcast listener
 
@@ -38,7 +39,7 @@ pub fn client(serverip: String) ->  Result<(), Box<dyn Error>> {
     }
     Ok(())
 }
-pub async fn broadcaster() -> Result<(), Box<dyn Error>>{
+pub async fn broadcaster(ip: String) -> Result<(), Box<dyn Error>>{
     todo!();
     Ok(())
 }
@@ -47,11 +48,13 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
     println!("Enter server's ip w/ :55000 after it");
     let mut a = String::new();
     let useresponsea = io::stdin().read_line(&mut a).expect("Failure");
+    let mut usersip = ipgrabber::get_ip();
+    let usersip = usersip.into_iter().collect::<String>();
     task::spawn_blocking(move ||{
         client(a);
     }).await;
     tokio::spawn(async move{
-        broadcaster().await;
+        broadcaster(usersip).await;
     });
     Ok(())
 }

@@ -67,3 +67,33 @@ pub fn get_ip() -> Vec<char>{
     };
     arr
 }
+
+pub fn port_converter(ogip: String) -> String{
+    //delete old port, replace with 55111 or something like that
+    let mut ip: String;
+    let mut arr = vec![];
+    match ogip.find(":"){
+        Some(index) => {
+            for i in ogip.chars(){
+                if i != ':' {
+                    arr.push(i);
+                } else if i != '5'{
+                    arr.push(i);
+                } else if i != '0'{
+                    arr.push(i);
+                }
+            }
+            arr.push(':');
+            arr.push('5');
+            arr.push('5');
+            arr.push('1');
+            arr.push('1');
+            arr.push('1');
+
+        },
+        None => println!("Error!"),
+    }
+    let ip = arr.into_iter().collect::<String>();
+    ip
+
+}
