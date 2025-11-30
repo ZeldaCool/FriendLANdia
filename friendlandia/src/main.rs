@@ -15,10 +15,7 @@ fn main(){
     if a.trim() == "server"{
         tcpserver::main();
     } else{
-        println!("Enter server's ip w/ :55000 after it");
-        let mut a = String::new();
-        let useresponsea = io::stdin().read_line(&mut a).expect("Failure");
-        tcpclient::client(a);
+        tcpclient::main();
     }
    
 }

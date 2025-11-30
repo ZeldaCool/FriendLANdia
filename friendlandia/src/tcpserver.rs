@@ -17,7 +17,6 @@ use tokio::net::TcpStream;
 pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
     //use rwlock instead
     let clientip = Arc::new(RwLock::new(Vec::new()));
-    let mut counter = 0;
     let listener = TcpListener::bind(&ip).await?;
    
 
@@ -54,15 +53,16 @@ pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
                 
                 for i in vec_read.iter(){
                     let ip = i.clone();
-                    task::spawn_blocking(move|| -> String{
+                    let mut ip_stuff = task::spawn_blocking(move|| -> String{
                         println!("Ip: {}", ip);
                         let new_ip = ipgrabber::port_converter(ip);
+                        println!("Modified IP: {}", new_ip);
                         new_ip
                     }).await;
+                    let ip_stuff = ip_stuff.unwrap();
+                    let mut stream = TcpStream::connect(&ip_stuff).await;
                     //connect to changed port ip, if on same system it won't work? so try to change port each time for now
                     //Send messages, close connection
-                    todo!();
-                    counter = counter+1;
                 }
                 }
                 });
