@@ -49,11 +49,34 @@ pub fn client(tx_to_broad: mpsc::Sender<String>, mut rx_from_broad: tokio::sync:
 pub async fn broadcaster(mut rx_from_client: mpsc::Receiver<String>, tx_to_client: tokio::sync::mpsc::Sender<Vec<String>>, ip: String) -> Result<(), Box<dyn Error>>{
     //Append the new messages to the message log, clear screen w/ this:     print!("{}[2J", 27 as char);
     let mut buffer = [0; 512];
+    let mut first_message = true;
     let listener = TcpListener::bind(&ip).await?;
+    let mut client_id = "undefined".to_string();
     while let Some(_) = rx_from_client.recv().await {
         let mut messages = vec![];
         match listener.accept().await{
                 Ok((mut stream, addr)) => {
+                    if first_message{
+                        let mut i = 0;
+                        while i <= 2{
+                            match stream.read(&mut buffer).await{
+                            Ok(n) => {
+                                if i == 0{
+                                    let client_id = String::from_utf8_lossy(&buffer[..n]);
+                                    messages.push(client_id.to_string());
+                                    let i = i+1;
+
+                                } else{
+                                let mut message = String::from_utf8_lossy(&buffer[..n]);
+                                messages.push(message.to_string());
+                                let i = i+1;
+                                }
+                            },
+                            Err(e) => println!("Error: {}", e),
+                            };
+                        }
+
+                    } else{
                     let mut i = 1;
                     while i <= 2{
                         match stream.read(&mut buffer).await{
@@ -65,6 +88,8 @@ pub async fn broadcaster(mut rx_from_client: mpsc::Receiver<String>, tx_to_clien
                         };
                         i = i+1;
                     }
+                    }
+                    let first_message = false;
                 },
                 Err(e) => println!("Error: {}", e),
         }

@@ -18,8 +18,8 @@ pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
     //use rwlock instead
     let clientip = Arc::new(RwLock::new(Vec::new()));
     let listener = TcpListener::bind(&ip).await?;
-   
-
+    let mut client_id = 0;
+    let mut first_message = true;
     loop {
         let cloned_writer =  Arc::clone(&clientip);
         let cloned_reader =  Arc::clone(&clientip);
@@ -37,6 +37,13 @@ pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
                     break;
                 }
                 println!("Received: {}", String::from_utf8_lossy(&buffer[..n]));
+                let mut moderate = task::spawn_blocking(|| ->  String {
+                println!("Moderate message? Y/N");
+                let mut input = String::new();
+                std::io::stdin().read_line(&mut input);
+                input.trim().to_string()
+                }).await;
+                let moderate = moderate.unwrap().to_string();
                 let mut result = task::spawn_blocking(|| ->  String {
                 println!("Enter message...");
                 let mut input = String::new();
@@ -62,10 +69,24 @@ pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
                     let ip_stuff = ip_stuff.unwrap().to_string();
                     let mut client_broadcast = TcpStream::connect(&ip_stuff).await.expect("connect failed");
                     let mut sending = String::from_utf8_lossy(&buffer[..n]);
-                    client_broadcast.write_all(sending.as_bytes()).await;
+                    if first_message{
+                        client_broadcast.write_all(client_id.to_string().as_bytes());
+                        client_id = client_id+1;
+                        if moderate == "Y"{
+                        client_broadcast.write_all("MODERATED MESSAGE".as_bytes()).await;
+                        } else{
+                        client_broadcast.write_all(sending.as_bytes()).await;
+                        }
+                        client_broadcast.write_all(result.as_bytes()).await;
+                    } else{
+                    if moderate == "Y"{
+                        client_broadcast.write_all("MODERATED MESSAGE".as_bytes()).await;
+                    } else{
+                        client_broadcast.write_all(sending.as_bytes()).await;
+                    }
                     client_broadcast.write_all(result.as_bytes()).await;
-                    //connect to changed port ip, if on same system it won't work? so try to change port each time for now
-                    //Send messages, close connection
+                }
+                   first_message = false;
                 }
                 }
                 });
