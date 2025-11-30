@@ -13,14 +13,19 @@ use std::sync::Arc;
 use tokio::task;
 use tokio::sync::broadcast;
 use tokio::io::AsyncBufReadExt;
+use std::time::SystemTime;
 use tokio::net::TcpStream;
+use std::thread;
 pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
     //use rwlock instead
+    let (tx, mut rx) = mpsc::channel::<String>(10);
     let clientip = Arc::new(RwLock::new(Vec::new()));
     let listener = TcpListener::bind(&ip).await?;
-    let mut client_id = 0;
     let mut first_message = true;
+    let mut moderate = "X";
+    let mut result = "X";
     loop {
+        let mut client_id = 0;
         let cloned_writer =  Arc::clone(&clientip);
         let cloned_reader =  Arc::clone(&clientip);
         match listener.accept().await{
@@ -37,20 +42,10 @@ pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
                     break;
                 }
                 println!("Received: {}", String::from_utf8_lossy(&buffer[..n]));
-                let mut moderate = task::spawn_blocking(|| ->  String {
                 println!("Moderate message? Y/N");
-                let mut input = String::new();
-                std::io::stdin().read_line(&mut input);
-                input.trim().to_string()
-                }).await;
-                let moderate = moderate.unwrap().to_string();
-                let mut result = task::spawn_blocking(|| ->  String {
+                let mut moderate = input_reader().await;
                 println!("Enter message...");
-                let mut input = String::new();
-                std::io::stdin().read_line(&mut input);
-                input.trim().to_string()
-                }).await;
-                let result = result.unwrap().to_string();
+                let mut result = input_reader().await;
                 //See if you need to drop lock here and grab it later
                 //Grab read lock here
                 //Figure out how to iterate here
@@ -68,25 +63,21 @@ pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
                     }).await;
                     let ip_stuff = ip_stuff.unwrap().to_string();
                     let mut client_broadcast = TcpStream::connect(&ip_stuff).await.expect("connect failed");
-                    let mut sending = String::from_utf8_lossy(&buffer[..n]);
-                    if first_message{
-                        client_broadcast.write_all(client_id.to_string().as_bytes());
-                        client_id = client_id+1;
-                        if moderate == "Y"{
-                        client_broadcast.write_all("MODERATED MESSAGE".as_bytes()).await;
-                        } else{
-                        client_broadcast.write_all(sending.as_bytes()).await;
-                        }
-                        client_broadcast.write_all(result.as_bytes()).await;
-                    } else{
+                    let mut sending = String::from_utf8_lossy(&buffer[..n]).to_string();
+                    client_broadcast.write_all(client_id.to_string().as_bytes()).await;
+                    client_id = client_id+1;
                     if moderate == "Y"{
-                        client_broadcast.write_all("MODERATED MESSAGE".as_bytes()).await;
+                    let timestamp = SystemTime::now();
+                    let moderated_formatted = format!("ID: {} MESSAGE: MODERATED TIMESTAMP: {:?}", client_id, timestamp);
+                    client_broadcast.write_all(moderated_formatted.as_bytes()).await;
                     } else{
-                        client_broadcast.write_all(sending.as_bytes()).await;
+                    let timestamp = SystemTime::now();
+                    let client_formatted = format!("ID: {} MESSAGE: {} TIMESTAMP: {:?}", client_id, sending, timestamp);
+                    client_broadcast.write_all(client_formatted.as_bytes()).await;
                     }
-                    client_broadcast.write_all(result.as_bytes()).await;
-                }
-                   first_message = false;
+                    let timestamp = SystemTime::now();
+                    let server_formatted = format!("ID: SERVER MESSAGE: {} TIMESTAMP: {:?}", client_id, result);
+                    client_broadcast.write_all(server_formatted.as_bytes()).await;
                 }
                 }
                 });
@@ -98,7 +89,14 @@ pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-
+pub async fn input_reader() -> String{
+    let mut moderate = task::spawn_blocking(|| ->  String {
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input);
+        input.trim().to_string()
+    }).await;
+    moderate.unwrap().to_string()
+}
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn Error>>  {
     let mut z = ipgrabber::get_ip();
