@@ -21,6 +21,7 @@ use tokio::task::spawn_blocking;
 
 
 pub fn client(tx_to_broad: mpsc::Sender<String>, mut rx_from_broad: tokio::sync::mpsc::Receiver<Vec<String>>, serverip: String) ->  Result<(), Box<dyn Error>> {
+    let mut message_logs: Vec<String> = vec![];
     let serverip = serverip.trim().to_string();
     let mut stream = TcpStream::connect(&serverip)?;
     loop{
@@ -47,14 +48,26 @@ pub fn client(tx_to_broad: mpsc::Sender<String>, mut rx_from_broad: tokio::sync:
 }
 pub async fn broadcaster(mut rx_from_client: mpsc::Receiver<String>, tx_to_client: tokio::sync::mpsc::Sender<Vec<String>>, ip: String) -> Result<(), Box<dyn Error>>{
     //Append the new messages to the message log, clear screen w/ this:     print!("{}[2J", 27 as char);
+    let mut buffer = [0; 512];
     let listener = TcpListener::bind(&ip).await?;
     while let Some(_) = rx_from_client.recv().await {
+        let mut messages = vec![];
         match listener.accept().await{
                 Ok((mut stream, addr)) => {
-                        
-                }
+                    let mut i = 1;
+                    while i <= 2{
+                        match stream.read(&mut buffer).await{
+                            Ok(n) => {
+                                let mut message = String::from_utf8_lossy(&buffer[..n]);
+                                messages.push(message.to_string());
+                            },
+                            Err(e) => println!("Error: {}", e),
+                        };
+                        i = i+1;
+                    }
+                },
+                Err(e) => println!("Error: {}", e),
         }
-        let messages = vec!["First message".to_string(), "Second message".to_string()];
         tx_to_client.send(messages).await.unwrap();
     }
     Ok(())

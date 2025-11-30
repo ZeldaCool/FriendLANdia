@@ -43,8 +43,8 @@ pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
                 std::io::stdin().read_line(&mut input);
                 input.trim().to_string()
                 }).await;
+                let result = result.unwrap().to_string();
                 //See if you need to drop lock here and grab it later
-                //stream.write_all(result.unwrap().as_bytes()).await;
                 //Grab read lock here
                 //Figure out how to iterate here
 
@@ -59,8 +59,11 @@ pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
                         println!("Modified IP: {}", new_ip);
                         new_ip
                     }).await;
-                    let ip_stuff = ip_stuff.unwrap();
-                    let mut stream = TcpStream::connect(&ip_stuff).await;
+                    let ip_stuff = ip_stuff.unwrap().to_string();
+                    let mut client_broadcast = TcpStream::connect(&ip_stuff).await.expect("connect failed");
+                    let mut sending = String::from_utf8_lossy(&buffer[..n]);
+                    client_broadcast.write_all(sending.as_bytes()).await;
+                    client_broadcast.write_all(result.as_bytes()).await;
                     //connect to changed port ip, if on same system it won't work? so try to change port each time for now
                     //Send messages, close connection
                 }
