@@ -8,7 +8,7 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::sync::RwLock;
-use std::sync::Mutex;
+use tokio::sync::Mutex;
 use std::sync::Arc;
 use tokio::task;
 use tokio::sync::broadcast;
@@ -17,27 +17,32 @@ use std::time::SystemTime;
 use tokio::net::TcpStream;
 use std::thread;
 pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
-    //use rwlock instead
-    let (tx, mut rx) = mpsc::channel::<String>(10);
-    let clientip = Arc::new(RwLock::new(Vec::new()));
+    let clients: Arc<tokio::sync::Mutex<Vec<Arc<tokio::sync::Mutex<TcpStream>>>>> = Arc::new(tokio::sync::Mutex::new(Vec::new()));
     let listener = TcpListener::bind(&ip).await?;
+    let client_counter = Arc::new(tokio::sync::Mutex::new(0u32));
     let mut first_message = true;
+    let client_ids: Arc<Mutex<HashMap<usize, u32>>> = Arc::new(Mutex::new(HashMap::new()));
     let mut moderate = "X";
     let mut result = "X";
     loop {
+        let client_counter_clone = Arc::clone(&client_counter);
+        let clients_clone = Arc::clone(&clients);
         let mut client_id = 0;
-        let cloned_writer =  Arc::clone(&clientip);
-        let cloned_reader =  Arc::clone(&clientip);
         match listener.accept().await{
         Ok((mut stream, addr)) => {
             tokio::spawn(async move {
-                //Retrieve write lock here
-                let mut vec = cloned_writer.write().await;
-                vec.push(addr.to_string());
-                drop(vec);
+                let stream = Arc::new(Mutex::new(stream));
+                {
+                    let mut locked = clients_clone.lock().await;
+                    locked.push(Arc::clone(&stream));
+                    drop(locked);
+                }
                 println!("Connection recieved from : {}", addr);
                 let mut buffer = [0; 512];
-                while let Ok(n) = stream.read(&mut buffer).await {
+                while let Ok(n) = {
+                    let mut locked_stream = stream.lock().await;
+                    locked_stream.read(&mut buffer).await                
+                }{
                 if n == 0 {
                     break;
                 }
@@ -51,33 +56,29 @@ pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
                 //Figure out how to iterate here
 
                 //Try using blocking_read in a spawn::blocking for this whole section, place ips in a vec to use it outside of task, use that as the client list? If that doesn't work, post to stackoverflow
-                let mut vec_read = cloned_reader.read().await;
-                
+                let vec_read = {
+                    let guard = clients_clone.lock().await;
+                    guard.clone()
+                };
+                let mut id_lock = client_counter_clone.lock().await;
+                *id_lock += 1;
+                let client_id = *id_lock;
+                drop(id_lock);
                 for i in vec_read.iter(){
-                    let ip = i.clone();
-                    let mut ip_stuff = task::spawn_blocking(move|| -> String{
-                        println!("Ip: {}", ip);
-                        let new_ip = ipgrabber::port_converter(ip);
-                        println!("Modified IP: {}", new_ip);
-                        new_ip
-                    }).await;
-                    let ip_stuff = ip_stuff.unwrap().to_string();
-                    let mut client_broadcast = TcpStream::connect(&ip_stuff).await.expect("connect failed");
-                    let mut sending = String::from_utf8_lossy(&buffer[..n]).to_string();
-                    client_broadcast.write_all(client_id.to_string().as_bytes()).await;
-                    client_id = client_id+1;
-                    if moderate == "Y"{
-                    let timestamp = SystemTime::now();
-                    let moderated_formatted = format!("ID: {} MESSAGE: MODERATED TIMESTAMP: {:?}", client_id, timestamp);
-                    client_broadcast.write_all(moderated_formatted.as_bytes()).await;
-                    } else{
-                    let timestamp = SystemTime::now();
-                    let client_formatted = format!("ID: {} MESSAGE: {} TIMESTAMP: {:?}", client_id, sending, timestamp);
-                    client_broadcast.write_all(client_formatted.as_bytes()).await;
+                    let mut locked_client = i.lock().await;
+                    let sending = String::from_utf8_lossy(&buffer[..n]).to_string();
+                    if moderate == "Y"{      
+                    let moderated_formatted = format!("ID: {}| MESSAGE: MODERATED BY SERVER\n", client_id);
+                    locked_client.write_all(moderated_formatted.as_bytes()).await;
+                    locked_client.flush().await;
+                    } else{                                            
+                    let client_formatted = format!("ID: {}| MESSAGE: {}\n", client_id, sending);
+                    locked_client.write_all(client_formatted.as_bytes()).await;
+                    locked_client.flush().await;
                     }
-                    let timestamp = SystemTime::now();
-                    let server_formatted = format!("ID: SERVER MESSAGE: {} TIMESTAMP: {:?}", client_id, result);
-                    client_broadcast.write_all(server_formatted.as_bytes()).await;
+                    let server_formatted = format!("ID: SERVER| MESSAGE: {}\n", result);
+                    locked_client.write_all(server_formatted.as_bytes()).await;
+                    locked_client.flush().await;
                 }
                 }
                 });
