@@ -30,14 +30,17 @@ pub fn client(serverip: String) ->  Result<(), Box<dyn Error>> {
     let mut buffer = [0; 512];
     let mut read_stream = stream.try_clone()?;
     let (sig_tx, sig_rx) = channel::<()>();
-    let mut first_message = true;
+    let mut first_message_local = true;
+    let mut counter = 0;
     thread::spawn(move || {
         let mut buffer = [0u8; 512];
+        let mut first_message = first_message_local;
         let mut stream_read = read_stream;
         loop{
             let listen_duration_first = Duration::from_secs(2);
-            let listen_duration_otherwise = Duration::from_secs(10);
+            let listen_duration_otherwise = Duration::from_secs(20);
             let start = Instant::now();
+            let mut counter = 0;
             if first_message{
             while start.elapsed() < listen_duration_first{
             match stream_read.read(&mut buffer){
@@ -58,15 +61,20 @@ pub fn client(serverip: String) ->  Result<(), Box<dyn Error>> {
             }
         }
         let _ = sig_tx.send(());
-        let first_message = false;
+        first_message = false;
         } else{
             while start.elapsed() < listen_duration_otherwise{
+                if counter >= 2{
+                    let _ = sig_tx.send(());
+                    break;
+                }
                 match stream_read.read(&mut buffer){
                 Ok(n) =>{
                     if n == 0{
                         break;
                     }
                     println!("\n{}", String::from_utf8_lossy(&buffer[..n]));
+                    counter += 1;
                 }
                 Err(e) =>{
                     println!("Error: {}", e);

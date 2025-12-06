@@ -46,6 +46,7 @@ pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
                     for msg in locked_logs.iter(){
                         stream.write_all(msg.as_bytes()).await;
                     }
+                    stream.write_all("Hello, client!".as_bytes()).await;
                 }
                 drop(locked_counter);
                 let stream = Arc::new(Mutex::new(stream));
@@ -93,21 +94,21 @@ pub async fn server(ip: String) -> Result<(), Box<dyn Error>> {
                     let mut locked_client = i.lock().await;
                     let sending = String::from_utf8_lossy(&buffer[..n]).to_string();
                     if moderate == "Y"{      
-                    let moderated_formatted = format!("CLIENT {} \nMESSAGE: MODERATED BY SERVER\n", client_id);
+                    let moderated_formatted = format!("CLIENT {}: \nMESSAGE: MODERATED BY SERVER\n", client_id);
                     locked_client.write_all(moderated_formatted.as_bytes()).await;
                     locked_client.flush().await;
                     let mut locked_logs = message_logs_clone.lock().await;                    
                     locked_logs.push(moderated_formatted);
                     drop(locked_logs);
                     } else{                                            
-                    let client_formatted = format!("CLIENT {} \nMESSAGE: {}\n", client_id, sending);
+                    let client_formatted = format!("CLIENT {}: \nMESSAGE: {}\n", client_id, sending);
                     locked_client.write_all(client_formatted.as_bytes()).await;
                     locked_client.flush().await;
                     let mut locked_logs = message_logs_clone.lock().await;                    
                     locked_logs.push(client_formatted);
                     drop(locked_logs);
                     }
-                    let server_formatted = format!("SERVER \nMESSAGE: {}\n", result);
+                    let server_formatted = format!("SERVER: \nMESSAGE: {}\n", result);
                     locked_client.write_all(server_formatted.as_bytes()).await;
                     locked_client.flush().await;
                     let mut locked_logs = message_logs_clone.lock().await;                    
