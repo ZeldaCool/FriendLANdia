@@ -16,21 +16,52 @@ use crate::ipgrabber;
 use tokio::sync::mpsc;
 use tokio::task::spawn_blocking;
 use tokio::time::timeout;
+use std::time::Duration;
+use std::thread::sleep;
+use std::sync::mpsc::{channel, Sender};
+use std::time::Instant;
 //use tokio::net::TcpStream;
 //Utilize a blocking task for client listener/sender, and a non-blocking task for the broadcast listener
 
 
 pub fn client(serverip: String) ->  Result<(), Box<dyn Error>> {
-    let mut message_logs: Vec<String> = vec![];
     let serverip = serverip.trim().to_string();
     let mut stream = TcpStream::connect(&serverip)?;
     let mut buffer = [0; 512];
     let mut read_stream = stream.try_clone()?;
+    let (sig_tx, sig_rx) = channel::<()>();
+    let mut first_message = true;
     thread::spawn(move || {
         let mut buffer = [0u8; 512];
         let mut stream_read = read_stream;
         loop{
+            let listen_duration_first = Duration::from_secs(2);
+            let listen_duration_otherwise = Duration::from_secs(10);
+            let start = Instant::now();
+            if first_message{
+            while start.elapsed() < listen_duration_first{
             match stream_read.read(&mut buffer){
+                Ok(n) =>{
+                    if n == 0{
+                        break;
+                    }
+                    println!("\n{}", String::from_utf8_lossy(&buffer[..n]));
+                    if String::from_utf8_lossy(&buffer[..n]) == "Hello, client!"{
+                        let _ = sig_tx.send(());
+                        break;
+                    }
+                }
+                Err(e) =>{
+                    println!("Error: {}", e);
+                    break;
+                }
+            }
+        }
+        let _ = sig_tx.send(());
+        let first_message = false;
+        } else{
+            while start.elapsed() < listen_duration_otherwise{
+                match stream_read.read(&mut buffer){
                 Ok(n) =>{
                     if n == 0{
                         break;
@@ -41,10 +72,21 @@ pub fn client(serverip: String) ->  Result<(), Box<dyn Error>> {
                     println!("Error: {}", e);
                     break;
                 }
+                }
             }
+        }
+        
         }
     });
     loop{
+    match sig_rx.recv_timeout(std::time::Duration::from_secs(20)) {
+        Ok(_) => {
+        }
+        Err(_) => {
+        }
+    }
+    while sig_rx.try_recv().is_ok() {}
+
     println!("\nSend a message? Y/N");
     let mut a = String::new();
     let useresponse = io::stdin().read_line(&mut a).expect("Failure");
@@ -56,6 +98,7 @@ pub fn client(serverip: String) ->  Result<(), Box<dyn Error>> {
     stream.write_all(aa).unwrap();
     stream.flush();
     }
+    let awaiting_response = true;
     }
     Ok(())
 }
